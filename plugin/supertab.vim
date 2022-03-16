@@ -78,6 +78,10 @@ set cpo&vim
     let g:SuperTabContextDefaultCompletionType = "<c-p>"
   endif
 
+  if !exists("g:SuperTabContextFileCompletionDisabled")
+    let g:SuperTabContextFileCompletionDisabled = 0
+  endif
+
   if !exists("g:SuperTabContextTextMemberPatterns")
     let g:SuperTabContextTextMemberPatterns = ['\.', '>\?::', '->']
   endif
@@ -869,12 +873,15 @@ function! s:ContextText() " {{{
 
     " don't kick off file completion if the pattern is '</' (to account for
     " sgml languanges), that's what the following <\@<! pattern is doing.
-    if curline =~ '<\@<!/\.\?\w*\%' . cnum . 'c' ||
-      \ ((has('win32') || has('win64')) && curline =~ '\\\w*\%' . cnum . 'c')
-
+    if !g:SuperTabContextFileCompletionDisabled &&
+      \ (
+      \   curline =~ '<\@<!/\.\?\w*\%' . cnum . 'c' ||
+      \   ((has('win32') || has('win64')) && curline =~ '\\\w*\%' . cnum . 'c')
+      \ )
       return "\<c-x>\<c-f>"
+    endif
 
-    elseif curline =~ '\(' . member_pattern . '\)\w*\%' . cnum . 'c' &&
+    if curline =~ '\(' . member_pattern . '\)\w*\%' . cnum . 'c' &&
       \ synname !~ '\(String\|Comment\)'
       let omniPrecedence = exists('g:SuperTabContextTextOmniPrecedence') ?
         \ g:SuperTabContextTextOmniPrecedence : ['&completefunc', '&omnifunc']
